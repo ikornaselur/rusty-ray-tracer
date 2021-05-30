@@ -1,3 +1,4 @@
+use indicatif::ProgressBar;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -13,13 +14,16 @@ fn write_img(path: &str, width: u32, height: u32) -> std::io::Result<()> {
     buf.push_str(&format!("{} {}\n", width, height));
     buf.push_str("255\n");
 
+    let bar = ProgressBar::new(height as u64);
+
     for x in 0..height {
         for y in 0..width {
-            let r = (x * 255 / height) as u8;
-            let g = 64;
-            let b = (y * 255 / width) as u8;
+            let r = (y * 255 / width) as u8;
+            let g = ((height - x) * 255 / height) as u8;
+            let b = 64;
             buf.push_str(&format!("{} {} {} ", r, g, b));
         }
+        bar.inc(1);
         buf.push_str("\n");
     }
 
