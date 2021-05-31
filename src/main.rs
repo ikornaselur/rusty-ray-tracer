@@ -1,6 +1,9 @@
+mod structs;
+
 use indicatif::ProgressBar;
 use std::fs::File;
 use std::io::prelude::*;
+use structs::Pixel;
 
 fn main() -> std::io::Result<()> {
     write_img("test.ppm", 1980, 1080)?;
@@ -18,10 +21,12 @@ fn write_img(path: &str, width: u32, height: u32) -> std::io::Result<()> {
 
     for x in 0..height {
         for y in 0..width {
-            let r = (y * 255 / width) as u8;
-            let g = ((height - x) * 255 / height) as u8;
-            let b = 64;
-            buf.push_str(&format!("{} {} {} ", r, g, b));
+            let pixel = Pixel {
+                r: (y * 255 / width) as u8,
+                g: ((height - x) * 255 / height) as u8,
+                b: 64,
+            };
+            buf.push_str(&format!("{} ", pixel));
         }
         bar.inc(1);
         buf.push_str("\n");
