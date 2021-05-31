@@ -21,11 +21,11 @@ fn write_img(path: &str, width: u32, height: u32) -> std::io::Result<()> {
 
     for x in 0..height {
         for y in 0..width {
-            let pixel = Pixel {
-                r: (y * 255 / width) as u8,
-                g: ((height - x) * 255 / height) as u8,
-                b: 64,
-            };
+            let pixel = Pixel::from_f32(
+                y as f32 / width as f32,
+                (height - x) as f32 / height as f32,
+                0.25,
+            );
             buf.push_str(&format!("{} ", pixel));
         }
         bar.inc(1);
