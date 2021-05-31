@@ -1,5 +1,5 @@
 [package]
-name = "rusty-tracer"
+name = "rusty-ray-tracer"
 version = "0.1.0"
 authors = ["Axel Örn <dev@absalon.is>"]
 edition = "2018"
