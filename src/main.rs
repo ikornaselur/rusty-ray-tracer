@@ -75,7 +75,32 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
+fn hit_sphere(center: Point3, radius: f32, ray: Ray) -> bool {
+    let oc = ray.origin - center;
+    let a = ray.direction.dot(ray.direction);
+    let b = 2.0 * oc.dot(ray.direction);
+    let c = oc.dot(oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+
+    discriminant > 0.0
+}
+
 fn ray_colour(ray: Ray) -> Pixel {
+    if hit_sphere(
+        Point3 {
+            x: 0.0,
+            y: 0.0,
+            z: -1.0,
+        },
+        0.5,
+        ray.clone(),
+    ) {
+        return Pixel {
+            r: 1.0,
+            g: 0.5,
+            b: 0.0,
+        };
+    }
     let unit_direction = ray.direction.unit_vector();
     let t = 0.5 * unit_direction.y + 1.0;
     (1.0 - t)

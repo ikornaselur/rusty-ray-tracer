@@ -1,7 +1,7 @@
 use crate::structs::Point3;
 use crate::structs::Vec3;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {
     pub origin: Point3,
     pub direction: Vec3,
