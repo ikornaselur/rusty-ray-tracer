@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -9,11 +9,11 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    fn dot(self, other: Self) -> f32 {
+    pub fn dot(self, other: Self) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
-    fn cross(self, other: Self) -> Self {
+    pub fn cross(self, other: Self) -> Self {
         Self {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
@@ -21,11 +21,15 @@ impl Vec3 {
         }
     }
 
-    fn length_squared(self) -> f32 {
+    pub fn unit_vector(self) -> Self {
+        self.clone() / self.length()
+    }
+
+    pub fn length_squared(self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
-    fn length(self) -> f32 {
+    pub fn length(self) -> f32 {
         self.length_squared().sqrt()
     }
 }
@@ -305,5 +309,20 @@ mod tests {
             z: 3.0,
         };
         assert_eq!(format!("{}", a), "1 2 3");
+    }
+
+    #[test]
+    fn test_unit_vector() {
+        let a = Vec3 {
+            x: 2.0,
+            y: 4.0,
+            z: 4.0,
+        };
+        let expected = Vec3 {
+            x: 2.0 / 6.0,
+            y: 4.0 / 6.0,
+            z: 4.0 / 6.0,
+        };
+        assert_eq!(a.unit_vector(), expected);
     }
 }
