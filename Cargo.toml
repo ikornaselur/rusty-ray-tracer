@@ -8,7 +8,6 @@ edition = "2018"
 
 [dependencies]
 env_logger = "0.8.3"
-indicatif = "0.16.2"
 log = "0.4.14"
 pixels = "0.3.0"
 winit = "0.25.0"
