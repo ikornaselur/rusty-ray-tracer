@@ -1,3 +1,4 @@
+use crate::models::{Hittable, Sphere};
 use crate::structs::{Colour, Point3, Ray, Vec3};
 
 const WIDTH: u32 = 1280;
@@ -91,40 +92,21 @@ impl World {
     }
 }
 
-fn hit_sphere(center: Point3, radius: f32, ray: Ray) -> f32 {
-    let oc = ray.origin - center;
-    let a = ray.direction.length_squared();
-    let half_b = oc.dot(ray.direction);
-    let c = oc.length_squared() - radius * radius;
-    let discriminant = half_b * half_b - a * c;
-
-    return if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-half_b - discriminant.sqrt()) / a
-    };
-}
-
 fn ray_colour(ray: Ray) -> Colour {
-    let sphere = Point3 {
-        x: 0.0,
-        y: 0.0,
-        z: -1.0,
+    let sphere = Sphere {
+        center: Point3 {
+            x: 0.0,
+            y: 0.0,
+            z: -1.0,
+        },
+        radius: 0.5,
     };
-    let t = hit_sphere(sphere, 0.5, ray);
-    if t > 0.0 {
-        let normal = (ray.at(t)
-            - Point3 {
-                x: 0.0,
-                y: 0.0,
-                z: -1.0,
-            })
-        .unit_vector();
+    if let Some(hit_record) = sphere.hit(ray, 0.0, 10.0) {
         return 0.5
             * Colour {
-                r: normal.x + 1.0,
-                g: normal.y + 1.0,
-                b: normal.z + 1.0,
+                r: hit_record.normal.x + 1.0,
+                g: hit_record.normal.y + 1.0,
+                b: hit_record.normal.z + 1.0,
             };
     }
 
