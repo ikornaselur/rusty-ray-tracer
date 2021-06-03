@@ -93,21 +93,41 @@ impl World {
 }
 
 fn ray_colour(ray: Ray) -> Colour {
-    let sphere = Sphere {
-        center: Point3 {
-            x: 0.0,
-            y: 0.0,
-            z: -1.0,
+    let objects = [
+        Sphere {
+            center: Point3 {
+                x: 0.0,
+                y: 0.0,
+                z: -1.0,
+            },
+            radius: 0.2,
         },
-        radius: 0.5,
-    };
-    if let Some(hit_record) = sphere.hit(ray, 0.0, 10.0) {
-        return 0.5
-            * Colour {
-                r: hit_record.normal.x + 1.0,
-                g: hit_record.normal.y + 1.0,
-                b: hit_record.normal.z + 1.0,
-            };
+        Sphere {
+            center: Point3 {
+                x: -0.9,
+                y: 0.8,
+                z: -1.0,
+            },
+            radius: 0.3,
+        },
+        Sphere {
+            center: Point3 {
+                x: 0.0,
+                y: 0.2,
+                z: -1.0,
+            },
+            radius: 0.3,
+        },
+    ];
+    for object in objects.iter() {
+        if let Some(hit_record) = object.hit(ray, 0.0, 10.0) {
+            return 0.5
+                * Colour {
+                    r: hit_record.normal.x + 1.0,
+                    g: hit_record.normal.y + 1.0,
+                    b: hit_record.normal.z + 1.0,
+                };
+        }
     }
 
     let unit_direction = ray.direction.unit_vector();
