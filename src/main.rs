@@ -1,92 +1,84 @@
 mod structs;
+mod world;
 
-use std::env;
+use log::error;
+use pixels::{Error, Pixels, SurfaceTexture};
+use winit::dpi::LogicalSize;
+use winit::event::{Event, VirtualKeyCode};
+use winit::event_loop::{ControlFlow, EventLoop};
+use winit::window::WindowBuilder;
+use winit_input_helper::WinitInputHelper;
 
-use indicatif::ProgressBar;
-use std::fs::File;
-use std::io::prelude::*;
-use structs::{Pixel, Point3, Ray, Vec3};
+use crate::world::World;
 
-fn main() -> std::io::Result<()> {
-    // Image
-    let args: Vec<String> = env::args().collect();
-    let image_width: usize = args[1].parse().expect("Missing image width argument");
+const WIDTH: u32 = 1280;
+const HEIGHT: u32 = 720;
 
-    let aspect_ratio = 16.0 / 9.0;
-    let image_height = (image_width as f32 / aspect_ratio) as i32;
-    println!("Creating {}x{} image", image_width, image_height);
+fn main() -> Result<(), Error> {
+    // Set up Pixels
+    env_logger::init();
+    let event_loop = EventLoop::new();
+    let mut input = WinitInputHelper::new();
+    let window = {
+        let size = LogicalSize::new(WIDTH as f64, HEIGHT as f64);
+        WindowBuilder::new()
+            .with_title("Hello Pixels")
+            .with_inner_size(size)
+            .with_min_inner_size(size)
+            .build(&event_loop)
+            .unwrap()
+    };
+
+    let mut pixels = {
+        let window_size = window.inner_size();
+        let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
+        Pixels::new(WIDTH, HEIGHT, surface_texture)?
+    };
 
     // Camera
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
 
-    let origin = Point3 {
-        x: 0.0,
-        y: 0.0,
-        z: 0.0,
-    };
-    let horizontal = Vec3 {
-        x: viewport_width,
-        y: 0.0,
-        z: 0.0,
-    };
-    let vertical = Vec3 {
-        x: 0.0,
-        y: viewport_height,
-        z: 0.0,
-    };
-    let lower_left_corner: Point3 = origin
-        - horizontal / 2.0
-        - vertical / 2.0
-        - Vec3 {
-            x: 0.0,
-            y: 0.0,
-            z: focal_length,
-        };
+    let mut world = World::new();
 
-    // Render
-    let mut file = File::create("out.ppm")?;
-    let mut buf = String::new();
-    buf.push_str(&format!("P3\n{} {}\n255\n", image_width, image_height));
+    event_loop.run(move |event, _, control_flow| {
+        // Draw the current frame
+        if let Event::RedrawRequested(_) = event {
+            world.draw(pixels.get_frame());
 
-    let bar = ProgressBar::new(image_height as u64);
-
-    for row in 0..image_height {
-        for column in 0..image_width {
-            let u = column as f32 / (image_width - 1) as f32;
-            let v = (image_height - row) as f32 / (image_height - 1) as f32;
-            let ray = Ray {
-                origin: origin,
-                direction: lower_left_corner.clone()
-                    + u * horizontal.clone()
-                    + v * vertical.clone()
-                    - origin,
-            };
-            let pixel = ray_colour(ray);
-            buf.push_str(&format!("{} ", pixel));
+            if pixels
+                .render()
+                .map_err(|e| error!("pixels.render() failed: {}", e))
+                .is_err()
+            {
+                *control_flow = ControlFlow::Exit;
+                return;
+            }
         }
-        bar.inc(1);
-        buf.push_str("\n");
-    }
 
-    file.write_all(buf.as_bytes())?;
+        // Handle input events
+        if input.update(&event) {
+            // Close events
+            if input.key_pressed(VirtualKeyCode::Escape)
+                || input.key_pressed(VirtualKeyCode::Q)
+                || input.quit()
+            {
+                *control_flow = ControlFlow::Exit;
+                return;
+            }
 
-    Ok(())
-}
+            // Resize the window
+            if let Some(size) = input.window_resized() {
+                pixels.resize_surface(size.width, size.height);
+            }
 
-fn ray_colour(ray: Ray) -> Pixel {
-    let unit_direction = ray.direction.unit_vector();
-    let t = 0.5 * unit_direction.y + 1.0;
-    (1.0 - t)
-        * Pixel {
-            r: 1.0,
-            g: 1.0,
-            b: 1.0,
+            world.update(
+                input.key_held(VirtualKeyCode::Right),
+                input.key_held(VirtualKeyCode::Left),
+                input.key_held(VirtualKeyCode::Up),
+                input.key_held(VirtualKeyCode::Down),
+            );
+
+            // Update internal state and request a redraw
+            window.request_redraw();
         }
-        + t * Pixel {
-            r: 0.5,
-            g: 0.7,
-            b: 1.0,
-        }
+    });
 }
