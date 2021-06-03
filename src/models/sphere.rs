@@ -29,10 +29,14 @@ impl Hittable for Sphere {
 
         let point = ray.at(root);
 
-        Some(HitRecord {
+        let mut hit_record = HitRecord {
             point: point,
             normal: (point - self.center) / self.radius,
             time: root,
-        })
+            front_face: false,
+        };
+        hit_record.set_face_normal(ray, hit_record.normal);
+
+        Some(hit_record)
     }
 }
