@@ -1,4 +1,4 @@
-use crate::models::{Hittable, Sphere};
+use crate::models::{HitRecord, Hittable};
 use crate::structs::{Colour, Point3, Ray, Vec3};
 
 const WIDTH: u32 = 1280;
@@ -11,6 +11,7 @@ pub struct World {
     horizontal: Vec3,
     vertical: Vec3,
     lower_left_corner: Point3,
+    pub hittable_list: Vec<Box<dyn Hittable>>,
 }
 
 impl World {
@@ -49,6 +50,7 @@ impl World {
             horizontal: horizontal,
             vertical: vertical,
             lower_left_corner: lower_left_corner,
+            hittable_list: Vec::new(),
         }
     }
 
@@ -84,43 +86,32 @@ impl World {
             let ray = Ray {
                 origin: self.origin,
                 direction: self.lower_left_corner + u * self.horizontal + v * self.vertical
-                    - self.origin,
+                    - Point3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
             };
-            let colour = ray_colour(ray);
+            let colour = self.ray_colour(ray);
             pixel.copy_from_slice(&colour.slice_u8());
         }
     }
-}
 
-fn ray_colour(ray: Ray) -> Colour {
-    let objects = [
-        Sphere {
-            center: Point3 {
-                x: 0.0,
-                y: 0.0,
-                z: -1.0,
-            },
-            radius: 0.2,
-        },
-        Sphere {
-            center: Point3 {
-                x: -0.9,
-                y: 0.8,
-                z: -1.0,
-            },
-            radius: 0.3,
-        },
-        Sphere {
-            center: Point3 {
-                x: 0.0,
-                y: 0.2,
-                z: -1.0,
-            },
-            radius: 0.3,
-        },
-    ];
-    for object in objects.iter() {
-        if let Some(hit_record) = object.hit(ray, 0.0, 10.0) {
+    fn hit_object(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let mut closest_so_far = t_max;
+        let mut closest_hit_record: Option<HitRecord> = None;
+
+        for object in self.hittable_list.iter() {
+            if let Some(hit_record) = object.hit(ray, t_min, closest_so_far) {
+                closest_so_far = hit_record.time;
+                closest_hit_record = Some(hit_record);
+            }
+        }
+        closest_hit_record
+    }
+
+    fn ray_colour(&self, ray: Ray) -> Colour {
+        if let Some(hit_record) = self.hit_object(ray, 0.0, f32::INFINITY) {
             return 0.5
                 * Colour {
                     r: hit_record.normal.x + 1.0,
@@ -128,19 +119,18 @@ fn ray_colour(ray: Ray) -> Colour {
                     b: hit_record.normal.z + 1.0,
                 };
         }
+        let unit_direction = ray.direction.unit_vector();
+        let t = 0.5 * unit_direction.y + 1.0;
+        (1.0 - t)
+            * Colour {
+                r: 1.0,
+                g: 1.0,
+                b: 1.0,
+            }
+            + t * Colour {
+                r: 0.5,
+                g: 0.7,
+                b: 1.0,
+            }
     }
-
-    let unit_direction = ray.direction.unit_vector();
-    let t = 0.5 * unit_direction.y + 1.0;
-    (1.0 - t)
-        * Colour {
-            r: 1.0,
-            g: 1.0,
-            b: 1.0,
-        }
-        + t * Colour {
-            r: 0.5,
-            g: 0.7,
-            b: 1.0,
-        }
 }

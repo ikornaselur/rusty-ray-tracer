@@ -10,6 +10,8 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit_input_helper::WinitInputHelper;
 
+use crate::models::Sphere;
+use crate::structs::Point3;
 use crate::world::World;
 
 const WIDTH: u32 = 1280;
@@ -36,9 +38,23 @@ fn main() -> Result<(), Error> {
         Pixels::new(WIDTH, HEIGHT, surface_texture)?
     };
 
-    // Camera
-
     let mut world = World::new();
+    world.hittable_list.push(Box::new(Sphere {
+        center: Point3 {
+            x: 0.0,
+            y: 0.0,
+            z: -1.0,
+        },
+        radius: 0.5,
+    }));
+    world.hittable_list.push(Box::new(Sphere {
+        center: Point3 {
+            x: 0.0,
+            y: -100.5,
+            z: -1.0,
+        },
+        radius: 100.0,
+    }));
 
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
