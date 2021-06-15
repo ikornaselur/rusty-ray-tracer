@@ -1,11 +1,11 @@
 use crate::models::{HitRecord, Hittable};
 use crate::structs::{Colour, Point3, Ray, Vec3};
 
-const WIDTH: u32 = 1280;
-const HEIGHT: u32 = 720;
 const MOVE_SPEED: f32 = 0.1;
 
 pub struct World {
+    height: u32,
+    width: u32,
     focal_length: f32,
     origin: Point3,
     horizontal: Vec3,
@@ -15,8 +15,8 @@ pub struct World {
 }
 
 impl World {
-    pub fn new() -> Self {
-        let aspect_ratio = 16.0 / 9.0;
+    pub fn new(height: u32, width: u32) -> Self {
+        let aspect_ratio = width as f32 / height as f32;
         let viewport_height = 2.0;
         let viewport_width = aspect_ratio * viewport_height;
         let focal_length = 1.0;
@@ -45,16 +45,18 @@ impl World {
                 z: focal_length,
             };
         Self {
-            focal_length: focal_length,
-            origin: origin,
-            horizontal: horizontal,
-            vertical: vertical,
-            lower_left_corner: lower_left_corner,
+            height,
+            width,
+            focal_length,
+            origin,
+            horizontal,
+            vertical,
+            lower_left_corner,
             hittable_list: Vec::new(),
         }
     }
 
-    pub fn update(&mut self, right: bool, left: bool, up: bool, down: bool) {
+    pub fn update(&mut self, right: bool, left: bool, up: bool, down: bool) -> bool {
         // TODO: Proper input handling, this works for just hacking around with now
         if right {
             self.origin.x += MOVE_SPEED;
@@ -76,13 +78,17 @@ impl World {
                     y: 0.0,
                     z: self.focal_length,
                 };
+            true
+        } else {
+            false
         }
     }
 
     pub fn draw(&self, frame: &mut [u8]) {
         for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
-            let u = (i % WIDTH as usize) as f32 / (WIDTH - 1) as f32;
-            let v = (HEIGHT - (i / WIDTH as usize) as u32) as f32 / (HEIGHT - 1) as f32;
+            let u = (i % self.width as usize) as f32 / (self.width - 1) as f32;
+            let v =
+                (self.height - (i / self.width as usize) as u32) as f32 / (self.height - 1) as f32;
             let ray = Ray {
                 origin: self.origin,
                 direction: self.lower_left_corner + u * self.horizontal + v * self.vertical

@@ -38,7 +38,7 @@ fn main() -> Result<(), Error> {
         Pixels::new(WIDTH, HEIGHT, surface_texture)?
     };
 
-    let mut world = World::new();
+    let mut world = World::new(HEIGHT, WIDTH);
     world.hittable_list.push(Box::new(Sphere {
         center: Point3 {
             x: 0.0,
@@ -82,12 +82,15 @@ fn main() -> Result<(), Error> {
                 return;
             }
 
+            let mut redraw = false;
+
             // Resize the window
             if let Some(size) = input.window_resized() {
                 pixels.resize_surface(size.width, size.height);
+                redraw = true;
             }
 
-            world.update(
+            redraw |= world.update(
                 input.key_held(VirtualKeyCode::Right),
                 input.key_held(VirtualKeyCode::Left),
                 input.key_held(VirtualKeyCode::Up),
@@ -95,7 +98,9 @@ fn main() -> Result<(), Error> {
             );
 
             // Update internal state and request a redraw
-            window.request_redraw();
+            if redraw {
+                window.request_redraw();
+            }
         }
     });
 }
