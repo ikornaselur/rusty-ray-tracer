@@ -22,7 +22,7 @@ impl Vec3 {
     }
 
     pub fn unit_vector(self) -> Self {
-        self.clone() / self.length()
+        self / self.length()
     }
 
     pub fn length_squared(self) -> f32 {
@@ -119,9 +119,9 @@ mod tests {
             y: 2.0,
             z: 3.0,
         };
-        assert_eq!(a.x, 1.0);
-        assert_eq!(a.y, 2.0);
-        assert_eq!(a.z, 3.0);
+        assert_eq!((a.x - 1.0).abs() < f32::EPSILON, true);
+        assert_eq!((a.y - 2.0).abs() < f32::EPSILON, true);
+        assert_eq!((a.z - 3.0).abs() < f32::EPSILON, true);
     }
 
     #[test]
@@ -258,7 +258,7 @@ mod tests {
             y: 5.0,
             z: 5.0,
         };
-        assert_eq!(a.dot(b), 29.0)
+        assert_eq!((a.dot(b) - 29.0).abs() < f32::EPSILON, true)
     }
 
     #[test]
@@ -288,7 +288,7 @@ mod tests {
             y: 2.0,
             z: 3.0,
         };
-        assert_eq!(a.length_squared(), 14.0);
+        assert_eq!((a.length_squared() - 14.0).abs() < f32::EPSILON, true);
     }
 
     #[test]
@@ -298,7 +298,7 @@ mod tests {
             y: 2.0,
             z: 3.0,
         };
-        assert_eq!(a.length(), 14.0_f32.sqrt());
+        assert_eq!((a.length() - 14.0_f32.sqrt()).abs() < f32::EPSILON, true);
     }
 
     #[test]

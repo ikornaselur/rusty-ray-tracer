@@ -13,7 +13,7 @@ impl Hittable for Sphere {
         let half_b = oc.dot(ray.direction);
         let c = oc.length_squared() - self.radius * self.radius;
 
-        let discriminant = half_b * half_b - a * c;
+        let discriminant = half_b.powf(2.0) - a * c;
         if discriminant < 0.0 {
             return None;
         }
@@ -30,7 +30,7 @@ impl Hittable for Sphere {
         let point = ray.at(root);
 
         let mut hit_record = HitRecord {
-            point: point,
+            point,
             normal: (point - self.center) / self.radius,
             time: root,
             front_face: false,
